@@ -4,15 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"transfers-api/internal/config"
 	"transfers-api/internal/enums"
 	"transfers-api/internal/known_errors"
 	"transfers-api/internal/logging"
 	"transfers-api/internal/models"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type TransfersMongoDBRepo struct {
@@ -86,6 +87,37 @@ func (r *TransfersMongoDBRepo) GetByID(ctx context.Context, id string) (models.T
 		Currency:   enums.ParseCurrency(transfer.Currency),
 		Amount:     transfer.Amount,
 		State:      transfer.State, // TODO: replace with enums.ParseState
+	}, nil
+}
+
+func (r *TransfersMongoDBRepo) GetByUserID(ctx context.Context, userID string) (models.Transfer, error) {
+	cursor, err := r.collection.Find(ctx, bson.M{
+		"$or": []bson.M{
+			{"sender_id": fmt.Sprintf("%s", userID)},
+			{"receiver_id": fmt.Sprintf("%s", userID)},
+		},
+	})
+	if err != nil {
+		return models.Transfer{}, fmt.Errorf("error finding transfer for user %s: %w", userID, err)
+	}
+	defer cursor.Close(ctx)
+
+	if !cursor.Next(ctx) {
+		return models.Transfer{}, fmt.Errorf("transfer not found for user %s: %w", userID, known_errors.ErrNotFound)
+	}
+
+	var transfer transferMongoDAO
+	if err := cursor.Decode(&transfer); err != nil {
+		return models.Transfer{}, fmt.Errorf("error decoding transfer for user %s: %w", userID, err)
+	}
+
+	return models.Transfer{
+		ID:         transfer.ID.Hex(),
+		SenderID:   transfer.SenderID,
+		ReceiverID: transfer.ReceiverID,
+		Currency:   enums.ParseCurrency(transfer.Currency),
+		Amount:     transfer.Amount,
+		State:      transfer.State,
 	}, nil
 }
 

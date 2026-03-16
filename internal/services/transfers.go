@@ -15,6 +15,7 @@ import (
 type TransfersRepository interface {
 	Create(ctx context.Context, transfer models.Transfer) (string, error)
 	GetByID(ctx context.Context, id string) (models.Transfer, error)
+	GetByUserID(ctx context.Context, userID string) (models.Transfer, error)
 	Update(ctx context.Context, transfer models.Transfer) error
 	Delete(ctx context.Context, id string) error
 }
@@ -36,7 +37,7 @@ func (s *TransfersService) Create(ctx context.Context, transfer models.Transfer)
 		return "", fmt.Errorf("sender_id is required: %w", known_errors.ErrBadRequest)
 	}
 	if strings.TrimSpace(transfer.ReceiverID) == "" {
-		return "", fmt.Errorf("sender_id is required: %w", known_errors.ErrBadRequest)
+		return "", fmt.Errorf("receiver_id is required: %w", known_errors.ErrBadRequest)
 	}
 	if transfer.Currency == enums.CurrencyUnknown {
 		return "", fmt.Errorf("invalid currency %s: %w", transfer.Currency.String(), known_errors.ErrBadRequest)
@@ -58,6 +59,14 @@ func (s *TransfersService) GetByID(ctx context.Context, id string) (models.Trans
 	transfer, err := s.transfersRepo.GetByID(ctx, id)
 	if err != nil {
 		return models.Transfer{}, fmt.Errorf("error getting transfer %s from repository: %w", id, err)
+	}
+	return transfer, nil
+}
+
+func (s *TransfersService) GetByUserID(ctx context.Context, userID string) (models.Transfer, error) {
+	transfer, err := s.transfersRepo.GetByUserID(ctx, userID)
+	if err != nil {
+		return models.Transfer{}, fmt.Errorf("error getting transfer for user %s from repository: %w", userID, err)
 	}
 	return transfer, nil
 }
