@@ -22,11 +22,12 @@ func main() {
 	// init repositories
 	transfersDB := repositories.NewTransfersMongoDBRepository(cfg.MongoDBConfig)
 	// transfersDB := repositories.NewTransfersMySQLRepository(cfg.MySQLConfig)
+	transfersCCache := repositories.NewTransfersCCacheRepository(cfg.CCacheConfig)
 
 	logger.Info("repositories created")
 
 	// init services
-	transfersService := services.NewTransfersService(cfg.Business, transfersDB)
+	transfersService := services.NewTransfersService(cfg.Business, transfersDB, transfersCCache)
 	logger.Infof("services created")
 
 	// init handlers

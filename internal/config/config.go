@@ -12,6 +12,7 @@ type Config struct {
 	Business      BusinessConfig `json:"business"`
 	MongoDBConfig MongoDB        `json:"mongodb"`
 	MySQLConfig   MySQL          `json:"mysql"`
+	CCacheConfig  CCache         `json:"ccache"`
 }
 
 type BusinessConfig struct {
@@ -41,12 +42,20 @@ type MySQL struct {
 	ConnMaxLifetime time.Duration `env:"MYSQL_CONN_MAX_LIFETIME" envDefault:"5m" json:"conn_max_lifetime"`
 }
 
+type CCache struct {
+	TTLSeconds     int   `env:"CCACHE_TTL_SECONDS" envDefault:"30" json:"ttl_seconds"`
+	MaxSize        int64 `env:"CCACHE_MAX_SIZE" envDefault:"5000" json:"max_size"`
+	GetsPerPromote int32 `env:"CCACHE_GETS_PER_PROMOTE" envDefault:"3" json:"gets_per_promote"`
+	PercentToPrune uint8 `env:"CCACHE_PERCENT_TO_PRUNE" envDefault:"10" json:"percent_to_prune"`
+}
+
 func ParseFromEnv() *Config {
 	var cfg Config
 	for _, nested := range []interface{}{
 		&cfg.Business,
 		&cfg.MongoDBConfig,
 		&cfg.MySQLConfig,
+		&cfg.CCacheConfig,
 	} {
 		if err := env.Parse(nested); err != nil {
 			logging.Logger.Fatalf("error parsing config: %v", err)
