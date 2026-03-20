@@ -1,6 +1,7 @@
 package main
 
 import (
+	"transfers-api/internal/clients"
 	"transfers-api/internal/config"
 	"transfers-api/internal/handlers"
 	"transfers-api/internal/logging"
@@ -26,8 +27,17 @@ func main() {
 
 	logger.Info("repositories created")
 
+	// init clients
+	tranfersDBPublisher := clients.NewRabbitMQClient(cfg.RabbitMQConfig)
+	defer func() {
+		if err := tranfersDBPublisher.Close(); err != nil {
+			logger.Warnf("error closing RabbitMQ client: %v", err)
+		}
+	}()
+	logger.Info("clients created")
+
 	// init services
-	transfersService := services.NewTransfersService(cfg.Business, transfersDB, transfersCCache)
+	transfersService := services.NewTransfersService(cfg.Business, transfersDB, transfersCCache, tranfersDBPublisher)
 	logger.Infof("services created")
 
 	// init handlers

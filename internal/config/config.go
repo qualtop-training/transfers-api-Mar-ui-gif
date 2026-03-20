@@ -9,10 +9,11 @@ import (
 )
 
 type Config struct {
-	Business      BusinessConfig `json:"business"`
-	MongoDBConfig MongoDB        `json:"mongodb"`
-	MySQLConfig   MySQL          `json:"mysql"`
-	CCacheConfig  CCache         `json:"ccache"`
+	Business       BusinessConfig `json:"business"`
+	MongoDBConfig  MongoDB        `json:"mongodb"`
+	MySQLConfig    MySQL          `json:"mysql"`
+	CCacheConfig   CCache         `json:"ccache"`
+	RabbitMQConfig RabbitMQ       `json:"rabbitmq"`
 }
 
 type BusinessConfig struct {
@@ -49,6 +50,14 @@ type CCache struct {
 	PercentToPrune uint8 `env:"CCACHE_PERCENT_TO_PRUNE" envDefault:"10" json:"percent_to_prune"`
 }
 
+type RabbitMQ struct {
+	Hostname  string `env:"RABBITMQ_HOSTNAME" envDefault:"rabbitmq" json:"hostname"`
+	Port      int    `env:"RABBITMQ_PORT" envDefault:"5672" json:"port"`
+	Username  string `env:"RABBITMQ_USERNAME" envDefault:"guest" json:"username"`
+	Password  string `env:"RABBITMQ_PASSWORD" envDefault:"guest" json:"password"`
+	QueueName string `env:"RABBITMQ_QUEUE_NAME" envDefault:"transfers-events" json:"queue_name"`
+}
+
 func ParseFromEnv() *Config {
 	var cfg Config
 	for _, nested := range []interface{}{
@@ -56,6 +65,7 @@ func ParseFromEnv() *Config {
 		&cfg.MongoDBConfig,
 		&cfg.MySQLConfig,
 		&cfg.CCacheConfig,
+		&cfg.RabbitMQConfig,
 	} {
 		if err := env.Parse(nested); err != nil {
 			logging.Logger.Fatalf("error parsing config: %v", err)
