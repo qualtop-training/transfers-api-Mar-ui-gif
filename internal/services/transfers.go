@@ -16,7 +16,7 @@ import (
 type TransfersRepository interface {
 	Create(ctx context.Context, transfer models.Transfer) (string, error)
 	GetByID(ctx context.Context, id string) (models.Transfer, error)
-	GetByUserID(ctx context.Context, userID string) (models.Transfer, error)
+	GetTransfersByUserID(ctx context.Context, userID string) ([]models.Transfer, error)
 	Update(ctx context.Context, transfer models.Transfer) error
 	Delete(ctx context.Context, id string) error
 }
@@ -107,24 +107,26 @@ func (s *TransfersService) GetByID(ctx context.Context, id string) (models.Trans
 	return transfer, nil
 }
 
-func (s *TransfersService) GetByUserID(ctx context.Context, userID string) (models.Transfer, error) {
+func (s *TransfersService) GetTransfersByUserID(ctx context.Context, userID string) ([]models.Transfer, error) {
 	// first try to get from cache
-	transfer, err := s.transfersCCache.GetByUserID(ctx, userID)
+	transfer, err := s.transfersCCache.GetTransfersByUserID(ctx, userID)
 	if err == nil {
 		logging.Logger.Infof("Transfer retrieved from ccache with ID: %s", userID)
 		return transfer, nil
 	}
 
 	// if not found in cache, get from repository
-	transfer, err = s.transfersRepo.GetByUserID(ctx, userID)
+	transfer, err = s.transfersRepo.GetTransfersByUserID(ctx, userID)
 	if err != nil {
-		return models.Transfer{}, fmt.Errorf("error getting transfer for user %s from repository: %w", userID, err)
+		return []models.Transfer{}, fmt.Errorf("error getting transfer for user %s from repository: %w", userID, err)
 	}
 	logging.Logger.Infof("Transfer retrieved from DB with ID: %s", userID)
 
 	// also create in cache
-	if _, err := s.transfersCCache.Create(ctx, transfer); err != nil {
-		logging.Logger.Warnf("error creating transfer in ccache: %w", err)
+	for _, t := range transfer {
+		if _, err := s.transfersCCache.Create(ctx, t); err != nil {
+			logging.Logger.Warnf("error creating transfer in ccache: %w", err)
+		}
 	}
 	logging.Logger.Infof("Transfer created in ccache with ID: %s", userID)
 	return transfer, nil

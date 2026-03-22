@@ -32,7 +32,7 @@ type MongoDB struct {
 
 type MySQL struct {
 	ConnectTimeout time.Duration `env:"MYSQL_CONNECT_TIMEOUT" envDefault:"10s" json:"connect_timeout"`
-	Hostname       string        `env:"MYSQL_HOST" envDefault:"localhost" json:"hostname"`
+	Hostname       string        `env:"MYSQL_HOSTNAME" envDefault:"localhost" json:"hostname"`
 	Port           int           `env:"MYSQL_PORT" envDefault:"3306" json:"port"`
 	Username       string        `env:"MYSQL_USER" envDefault:"root" json:"username"`
 	Password       string        `env:"MYSQL_PASSWORD" envDefault:"root" json:"password"`

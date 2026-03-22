@@ -22,7 +22,8 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: transfers
     volumes:
-      - mysql_data:/var/lib/mysql    
+      - mysql_data:/var/lib/mysql
+
   rabbitmq:
     image: rabbitmq:3.12-management
     container_name: transfers-rabbitmq
@@ -38,14 +39,15 @@ services:
     image: transfers-api:0.1.0
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.debug
     container_name: transfers-api
     depends_on:
       - mongodb
       - mysql
+      - rabbitmq
     ports:
       - "8080:8080"
-
+      - "40000:40000"
     environment:
       # ---- Business ----
       TRANSFER_MIN_AMOUNT: 1
@@ -63,7 +65,7 @@ services:
       MYSQL_CONNECT_TIMEOUT: 10s
       MYSQL_HOSTNAME: mysql
       MYSQL_PORT: 3306
-      MYSQL_USERNAME: root
+      MYSQL_USER: root
       MYSQL_PASSWORD: root
       MYSQL_DATABASE: transfers
 

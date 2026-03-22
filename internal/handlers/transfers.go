@@ -18,7 +18,7 @@ import (
 type TransfersService interface {
 	Create(ctx context.Context, transfer models.Transfer) (string, error)
 	GetByID(ctx context.Context, id string) (models.Transfer, error)
-	GetByUserID(ctx context.Context, userID string) (models.Transfer, error)
+	GetTransfersByUserID(ctx context.Context, userID string) ([]models.Transfer, error)
 	Update(ctx context.Context, transfer models.Transfer) error
 	Delete(ctx context.Context, id string) error
 }
@@ -114,12 +114,12 @@ func (h *TransfersHandler) GetByID(ctx *gin.Context) {
 	})
 }
 
-func (h *TransfersHandler) GetByUserID(ctx *gin.Context) {
+func (h *TransfersHandler) GetTransfersByUserID(ctx *gin.Context) {
 	// parse user ID
-	userID := ctx.Param("userID")
+	userID := ctx.Query("user_id")
 
 	// get transfer
-	transfer, err := h.transfersSvc.GetByUserID(ctx.Request.Context(), userID)
+	transfer, err := h.transfersSvc.GetTransfersByUserID(ctx.Request.Context(), userID)
 	if err != nil {
 		if errors.Is(err, known_errors.ErrBadRequest) {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -134,14 +134,7 @@ func (h *TransfersHandler) GetByUserID(ctx *gin.Context) {
 	}
 
 	// return transfer
-	ctx.JSON(http.StatusOK, GetTransferByIDResponse{
-		ID:         transfer.ID,
-		SenderID:   transfer.SenderID,
-		ReceiverID: transfer.ReceiverID,
-		Currency:   transfer.Currency.String(),
-		Amount:     transfer.Amount,
-		State:      transfer.State, // TODO: replace with transfer.State.String()
-	})
+	ctx.JSON(http.StatusOK, transfer)
 }
 
 type UpdateTransferRequest struct {

@@ -1,0 +1,53 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Attach Transfers API Docker",
+      "type": "go",
+      "request": "attach",
+      "mode": "remote",
+      "host": "127.0.0.1",
+      "port": 40000,
+      "cwd": "${workspaceFolder}",
+      "showLog": true,
+      "trace": "verbose",
+      "substitutePath": [
+        {
+          "from": "${workspaceFolder}",
+          "to": "/app"
+        }
+      ]
+    },
+    {
+      "name": "Debug Transfers API local (MongoDB/MySQL Docker)",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/app",
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PORT": "8081",
+        "TRANSFER_MIN_AMOUNT": "1",
+        "MONGODB_CONNECT_TIMEOUT": "10s",
+        "MONGODB_HOSTNAME": "localhost",
+        "MONGODB_PORT": "27017",
+        "MONGODB_USERNAME": "root",
+        "MONGODB_PASSWORD": "root",
+        "MONGODB_DATABASE": "transfers-db",
+        "MONGODB_COLLECTION": "transfers",
+        "MYSQL_CONNECT_TIMEOUT": "10s",
+        "MYSQL_HOST": "localhost",
+        "MYSQL_PORT": "3306",
+        "MYSQL_USER": "root",
+        "MYSQL_PASSWORD": "root",
+        "MYSQL_DATABASE": "transfers",
+        "MYSQL_MAX_OPEN_CONNS": "25",
+        "MYSQL_MAX_IDLE_CONNS": "25",
+        "MYSQL_CONN_MAX_LIFETIME": "5m"
+      },
+      "args": [],
+      "showLog": true,
+      "trace": "verbose"
+    }
+  ]
+}

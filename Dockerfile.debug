@@ -21,10 +21,7 @@ WORKDIR /app
 
 RUN apk add --no-cache ca-certificates
 
-# Copia TODO el código fuente al contenedor de debug
 COPY . /app
-
-# Copia binario compilado y delve
 COPY --from=builder /app/bin/app /app/bin/app
 COPY --from=builder /go/bin/dlv /usr/local/bin/dlv
 
